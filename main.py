@@ -107,17 +107,20 @@ class InventoryUI(Entity):
 
 inventory_ui = InventoryUI()
 
-def update():
+def change_selected_block(delta):
     global selected_block
-    if held_keys['left mouse'] or held_keys['right mouse']:
-        hand.active()
-    else:
-        hand.passive()
+    selected_block = (selected_block + delta - 1) % 9 + 1
+    inventory_ui.update()
 
-    for i in range(1, 10):
-        if held_keys[str(i)]:
-            selected_block = i
-            inventory_ui.update()
+def input(key):
+    if key == 'scroll down':
+        change_selected_block(1)
+    elif key == 'scroll up':
+        change_selected_block(-1)
+    elif key in [str(i) for i in range(1, 10)]:
+        global selected_block
+        selected_block = int(key)
+        inventory_ui.update()
 
 class Voxel(Button):
     def __init__(self, position=(0, 0, 0), texture='grass'):
@@ -134,10 +137,10 @@ class Voxel(Button):
 
     def input(self, key):
         if self.hovered:
-            if key == 'left mouse down' and inventory.get(selected_block, 'empty') != 'empty':
+            if key == 'right mouse down' and inventory.get(selected_block, 'empty') != 'empty':
                 punch_sound.play()
                 Voxel(position=self.position + mouse.normal, texture=inventory.get(selected_block, 'empty'))
-            elif key == 'right mouse down':
+            elif key == 'left mouse down':
                 punch_sound.play()
                 destroy(self)
 
